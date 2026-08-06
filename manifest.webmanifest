@@ -1,0 +1,17 @@
+{
+  "name": "365 Sebep — Seni Sevmemin 365 Sebebi",
+  "short_name": "365 Sebep",
+  "description": "Damla için, Berk'ten. 💌",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffdfa",
+  "theme_color": "#fffdfa",
+  "lang": "tr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

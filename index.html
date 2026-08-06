@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>365 Sebep 💌</title>
+  <meta name="description" content="Seni sevmemin 365 sebebi">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#fffdfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="365 Sebep">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Yüzen kalpler arka planı -->
+  <div id="hearts-bg" aria-hidden="true"></div>
+
+  <!-- ============ GERİ SAYIM EKRANI (10 Ağustos 2026 öncesi) ============ -->
+  <section id="countdown-view" class="view hidden">
+    <div class="countdown-inner">
+      <div class="countdown-emoji">💌</div>
+      <h1 class="countdown-title">Bir sürpriz hazırlanıyor…</h1>
+      <p class="countdown-sub">Sabret güzelim, vakti gelince burada senin için bir şey açılacak. 👀</p>
+      <div class="countdown-timer">
+        <div class="timer-box"><span id="cd-days">0</span><label>gün</label></div>
+        <div class="timer-box"><span id="cd-hours">0</span><label>saat</label></div>
+        <div class="timer-box"><span id="cd-mins">0</span><label>dakika</label></div>
+        <div class="timer-box"><span id="cd-secs">0</span><label>saniye</label></div>
+      </div>
+      <p class="countdown-date">10 Ağustos 2026</p>
+      <p class="countdown-signature">— B.</p>
+    </div>
+  </section>
+
+  <!-- ============ ANA UYGULAMA ============ -->
+  <div id="app" class="hidden">
+
+    <header id="app-header">
+      <div class="header-title">
+        <h1 id="app-logo">365 Sebep</h1>
+        <p class="header-sub">Seni sevmemin 365 sebebi</p>
+      </div>
+      <div class="married-counter">
+        <span id="married-days">0</span>
+        <label>gündür evliyiz 💍</label>
+      </div>
+    </header>
+
+    <!-- BUGÜN -->
+    <main id="today-view" class="view">
+      <div id="special-badge" class="special-badge hidden"></div>
+
+      <article class="note-card" id="note-card">
+        <div class="note-card-deco">✦ &nbsp;💌&nbsp; ✦</div>
+        <p class="note-number">Sebep <span id="note-no">#1</span></p>
+        <p class="note-date" id="note-date"></p>
+        <div class="note-divider"></div>
+        <p class="note-text" id="note-text"></p>
+        <p class="note-sign">— Berk ❤️</p>
+      </article>
+
+      <div class="today-actions">
+        <button id="btn-save" class="btn btn-primary">📸 Galeriye Kaydet</button>
+        <button id="btn-tomorrow" class="btn btn-ghost">👀 Yarınınkine bakayım…</button>
+      </div>
+    </main>
+
+    <!-- ARŞİV -->
+    <main id="archive-view" class="view hidden">
+      <h2 class="archive-title">Geçmiş Sebepler 📖</h2>
+      <p class="archive-sub" id="archive-sub"></p>
+      <div id="archive-list" class="archive-list"></div>
+    </main>
+
+    <!-- ALT MENÜ -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-view="today-view">💌<span>Bugün</span></button>
+      <button class="nav-btn" data-view="archive-view">📖<span>Arşiv</span></button>
+    </nav>
+
+    <!-- Trüf 🐈 -->
+    <button id="truf-btn" title="Trüf" aria-label="Trüf">🐈</button>
+    <div id="truf-toast" class="hidden"></div>
+  </div>
+
+  <!-- Komik ret modalı -->
+  <div id="reject-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-emoji" id="reject-emoji">😏</div>
+      <p id="reject-text"></p>
+      <button class="btn btn-primary" id="reject-close">Tamam, sabrediyorum 🙄</button>
+    </div>
+  </div>
+
+  <!-- Arşiv not modalı -->
+  <div id="archive-modal" class="modal hidden">
+    <div class="modal-card note-card archive-note-card">
+      <div class="note-card-deco">✦ &nbsp;💌&nbsp; ✦</div>
+      <p class="note-number">Sebep <span id="am-no"></span></p>
+      <p class="note-date" id="am-date"></p>
+      <div class="note-divider"></div>
+      <p class="note-text" id="am-text"></p>
+      <p class="note-sign">— Berk ❤️</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="am-save">📸 Kaydet</button>
+        <button class="btn btn-ghost" id="am-close">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="share-canvas" width="1080" height="1350" class="hidden"></canvas>
+
+  <script src="notes.enc.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
