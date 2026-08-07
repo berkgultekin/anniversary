@@ -431,11 +431,18 @@ html, body {
 }
 .modal-emoji { font-size: 52px; }
 #reject-text {
-  margin: 18px 0 24px;
+  margin: 18px 0 12px;
   font-size: 16px;
   line-height: 1.7;
   font-weight: 500;
 }
+.reject-countdown {
+  margin: 0 0 22px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.reject-countdown:empty { display: none; }
 .modal-actions {
   display: flex;
   gap: 10px;

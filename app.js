@@ -17,21 +17,30 @@ const SPECIAL_DAYS = {
   365: '🥹 365. sebep! Bir yıl boyunca her gün buradaydın. Yarın 3. yıldönümümüz…'
 };
 
-// ---------- Tarih yardımcıları ----------
-function todayLocal() {
-  const t = new Date();
-  return new Date(t.getFullYear(), t.getMonth(), t.getDate());
+// ---------- Açılış saatleri ----------
+// Sebep #1: 10 Ağustos 2026, Stockholm saatiyle 17:00 (CEST = UTC+2) -> 15:00 UTC
+const UNLOCK_FIRST = Date.UTC(2026, 7, 10, 15, 0, 0);
+// Sebep #2 ve sonrası: her sabah Türkiye saatiyle 10:00 (UTC+3) -> 07:00 UTC
+const UNLOCK_DAILY = Date.UTC(2026, 7, 11, 7, 0, 0);
+
+// Cihazın saat diliminden bağımsız: mutlak zamana göre hangi gündeyiz?
+function currentDayNumber(now) {
+  const t = now.getTime();
+  if (t < UNLOCK_FIRST) return 0;
+  if (t < UNLOCK_DAILY) return 1;
+  return Math.floor((t - UNLOCK_DAILY) / MS_DAY) + 2;
+}
+
+// Bir sonraki notun açılacağı an
+function nextUnlockTime(dayNo) {
+  if (dayNo < 1) return UNLOCK_FIRST;
+  return UNLOCK_DAILY + Math.max(0, dayNo - 1) * MS_DAY;
 }
 
 // Onizleme: ?ironman=42 -> 42. gunu gosterir. Gecersiz deger yok sayilir.
-function simulatedToday() {
+function previewDay() {
   const n = parseInt(new URLSearchParams(location.search).get('ironman'), 10);
-  if (n >= 1 && n <= 365) return new Date(LAUNCH_DATE.getTime() + (n - 1) * MS_DAY);
-  return todayLocal();
-}
-
-function dayNumber(date) {
-  return Math.floor((date - LAUNCH_DATE) / MS_DAY) + 1;
+  return (n >= 1 && n <= 365) ? n : null;
 }
 
 function noteForDay(n) {
@@ -54,8 +63,8 @@ function pick(arr) {
 
 // ---------- Başlatma ----------
 const $ = (id) => document.getElementById(id);
-let TODAY = simulatedToday();
-let DAY_NO = dayNumber(TODAY);
+let DAY_NO = previewDay() || currentDayNumber(new Date());
+let TODAY = DAY_NO >= 1 ? dateOfDay(DAY_NO) : new Date();
 
 function init() {
   spawnHearts();
@@ -68,6 +77,7 @@ function init() {
     renderArchive();
     setupNav();
     setupTruf();
+    scheduleAutoRefresh();
     if (DAY_NO === 1 || SPECIAL_DAYS[DAY_NO]) launchConfetti();
   }
 }
@@ -75,8 +85,7 @@ function init() {
 // ---------- Geri sayım ----------
 function startCountdown() {
   function tick() {
-    const now = new Date();
-    let diff = LAUNCH_DATE - now;
+    const diff = UNLOCK_FIRST - Date.now();
     if (diff <= 0) { location.reload(); return; }
     const d = Math.floor(diff / MS_DAY);
     const h = Math.floor((diff % MS_DAY) / 3600000);
@@ -117,7 +126,27 @@ function renderToday() {
 function showRejection() {
   $('reject-emoji').textContent = pick(['😏','🙅‍♂️','⏳','🍮','😌','🤨','🐈','😜']);
   $('reject-text').textContent = pick(REJECTIONS);
+  $('reject-countdown').textContent = remainingText();
   $('reject-modal').classList.remove('hidden');
+}
+
+// "Yeni sebep 4 saat 12 dakika sonra" — kalan süreyi yazar
+function remainingText() {
+  const diff = nextUnlockTime(DAY_NO) - Date.now();
+  if (diff <= 0) return '';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const parts = [];
+  if (h > 0) parts.push(h + ' saat');
+  parts.push(m + ' dakika');
+  return '⏳ Yeni sebep ' + parts.join(' ') + ' sonra açılıyor.';
+}
+
+// Açılış saati gelince sayfayı kendiliğinden tazele
+function scheduleAutoRefresh() {
+  if (previewDay()) return;
+  const diff = nextUnlockTime(DAY_NO) - Date.now();
+  if (diff > 0 && diff < 2147483647) setTimeout(() => location.reload(), diff + 2000);
 }
 
 // ---------- Arşiv ----------
