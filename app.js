@@ -23,12 +23,21 @@ function todayLocal() {
   return new Date(t.getFullYear(), t.getMonth(), t.getDate());
 }
 
-// Gizli önizleme: ?gun=42 → 42. günü simüle eder (test için)
+// Onizleme anahtari: ?r=<kod>. Kod tek yonlu bir donusumden gecer,
+// ardisik gunlerin kodlari birbirine benzemez, gecersiz kod yok sayilir.
+const _R_A = 9973, _R_B = 4271, _R_M = 3720087;
+function _decodeRef(code) {
+  const v = parseInt(String(code), 36);
+  if (!Number.isFinite(v) || v < 0) return null;
+  const d = ((v - _R_B) % _R_M + _R_M) % _R_M;
+  if (d % _R_A !== 0) return null;
+  const n = d / _R_A;
+  return (n >= 1 && n <= 365) ? n : null;
+}
+
 function simulatedToday() {
-  const p = new URLSearchParams(location.search).get('gun');
-  if (p && !isNaN(parseInt(p, 10))) {
-    return new Date(LAUNCH_DATE.getTime() + (parseInt(p, 10) - 1) * MS_DAY);
-  }
+  const n = _decodeRef(new URLSearchParams(location.search).get('r') || '');
+  if (n) return new Date(LAUNCH_DATE.getTime() + (n - 1) * MS_DAY);
   return todayLocal();
 }
 
