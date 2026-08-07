@@ -27,21 +27,6 @@
   <!-- Yüzen kalpler arka planı -->
   <div id="hearts-bg" aria-hidden="true"></div>
 
-  <!-- ============ GERİ SAYIM EKRANI (10 Ağustos 2026 öncesi) ============ -->
-  <section id="countdown-view" class="view hidden">
-    <div class="countdown-inner">
-      <div class="countdown-emoji">💌</div>
-      <h1 class="countdown-title">Beklemede kal civcik…</h1>
-      <div class="countdown-timer">
-        <div class="timer-box"><span id="cd-days">0</span><label>gün</label></div>
-        <div class="timer-box"><span id="cd-hours">0</span><label>saat</label></div>
-        <div class="timer-box"><span id="cd-mins">0</span><label>dakika</label></div>
-        <div class="timer-box"><span id="cd-secs">0</span><label>saniye</label></div>
-      </div>
-      <p class="countdown-date">10 Ağustos 2026</p>
-    </div>
-  </section>
-
   <!-- ============ ANA UYGULAMA ============ -->
   <div id="app" class="hidden">
 
@@ -88,8 +73,30 @@
       <button class="nav-btn" data-view="archive-view">📖<span>Arşiv</span></button>
     </nav>
 
-    <!-- Trüf 🐈 -->
-    <button id="truf-btn" title="Trüf" aria-label="Trüf">🐈</button>
+    <!-- Trüf — beyaz kedi -->
+    <button id="truf-btn" title="Trüf" aria-label="Trüf">
+      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+        <!-- kulaklar -->
+        <path d="M14 26 L15 9 L30 19 Z" fill="#ffffff" stroke="#cfc7c1" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M50 26 L49 9 L34 19 Z" fill="#ffffff" stroke="#cfc7c1" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M18 24 L19 14 L27 20 Z" fill="#f3ccd1"/>
+        <path d="M46 24 L45 14 L37 20 Z" fill="#f3ccd1"/>
+        <!-- baş -->
+        <ellipse cx="32" cy="35" rx="21" ry="19" fill="#ffffff" stroke="#cfc7c1" stroke-width="2"/>
+        <!-- gri lekeler -->
+        <path d="M32 16 a21 19 0 0 0 -19 12 a21 19 0 0 0 3 14 Z" fill="#eceae8" opacity="0.85"/>
+        <!-- gözler -->
+        <ellipse cx="24" cy="33" rx="3" ry="3.6" fill="#4a3f3a"/>
+        <ellipse cx="40" cy="33" rx="3" ry="3.6" fill="#4a3f3a"/>
+        <circle cx="25.1" cy="31.8" r="1" fill="#ffffff"/>
+        <circle cx="41.1" cy="31.8" r="1" fill="#ffffff"/>
+        <!-- burun ve ağız -->
+        <path d="M29.5 41 L34.5 41 L32 44 Z" fill="#e79aa4"/>
+        <path d="M32 44 v3 M32 47 q-4 3 -7 0 M32 47 q4 3 7 0" fill="none" stroke="#b9afa8" stroke-width="1.7" stroke-linecap="round"/>
+        <!-- bıyıklar -->
+        <path d="M17 40 l-9 -3 M17 44 l-9 2 M47 40 l9 -3 M47 44 l9 2" fill="none" stroke="#cfc7c1" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+    </button>
     <div id="truf-toast" class="hidden"></div>
   </div>
 

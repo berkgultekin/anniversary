@@ -18,19 +18,20 @@ const SPECIAL_DAYS = {
 };
 
 // ---------- Açılış saati ----------
-// Her sebep, ilk gün dahil, Türkiye saatiyle 10:00'da açılır (TR = UTC+3, yaz saati yok).
-// Mutlak zamana bağlı: telefon hangi saat diliminde olursa olsun aynı anda açılır.
-const UNLOCK_FIRST = Date.UTC(2026, 7, 10, 7, 0, 0);  // 10 Ağustos 2026, 10:00 TR
+// Sebep #1 her zaman görünür (link ne zaman açılırsa açılsın).
+// Sebep #2'den itibaren her sabah Türkiye saatiyle 10:00'da bir yenisi açılır.
+// TR = UTC+3, yaz saati yok. Mutlak zamana bağlı: cihazın saat dilimi önemsiz.
+const UNLOCK_SECOND = Date.UTC(2026, 7, 11, 7, 0, 0);  // 11 Ağustos 2026, 10:00 TR
 
 function currentDayNumber(now) {
   const t = now.getTime();
-  if (t < UNLOCK_FIRST) return 0;
-  return Math.floor((t - UNLOCK_FIRST) / MS_DAY) + 1;
+  if (t < UNLOCK_SECOND) return 1;
+  return Math.floor((t - UNLOCK_SECOND) / MS_DAY) + 2;
 }
 
 // Bir sonraki notun açılacağı an
 function nextUnlockTime(dayNo) {
-  return UNLOCK_FIRST + Math.max(0, dayNo) * MS_DAY;
+  return UNLOCK_SECOND + Math.max(0, dayNo - 1) * MS_DAY;
 }
 
 // Onizleme: ?ironman=42 -> 42. gunu gosterir. Gecersiz deger yok sayilir.
@@ -60,40 +61,17 @@ function pick(arr) {
 // ---------- Başlatma ----------
 const $ = (id) => document.getElementById(id);
 let DAY_NO = previewDay() || currentDayNumber(new Date());
-let TODAY = DAY_NO >= 1 ? dateOfDay(DAY_NO) : new Date();
+let TODAY = dateOfDay(DAY_NO);
 
 function init() {
   spawnHearts();
-  if (DAY_NO < 1) {
-    $('countdown-view').classList.remove('hidden');
-    startCountdown();
-  } else {
-    $('app').classList.remove('hidden');
-    renderToday();
-    renderArchive();
-    setupNav();
-    setupTruf();
-    scheduleAutoRefresh();
-    if (DAY_NO === 1 || SPECIAL_DAYS[DAY_NO]) launchConfetti();
-  }
-}
-
-// ---------- Geri sayım ----------
-function startCountdown() {
-  function tick() {
-    const diff = UNLOCK_FIRST - Date.now();
-    if (diff <= 0) { location.reload(); return; }
-    const d = Math.floor(diff / MS_DAY);
-    const h = Math.floor((diff % MS_DAY) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    $('cd-days').textContent = d;
-    $('cd-hours').textContent = String(h).padStart(2, '0');
-    $('cd-mins').textContent = String(m).padStart(2, '0');
-    $('cd-secs').textContent = String(s).padStart(2, '0');
-  }
-  tick();
-  setInterval(tick, 1000);
+  $('app').classList.remove('hidden');
+  renderToday();
+  renderArchive();
+  setupNav();
+  setupTruf();
+  scheduleAutoRefresh();
+  if (DAY_NO === 1 || SPECIAL_DAYS[DAY_NO]) launchConfetti();
 }
 
 // ---------- Bugün ----------
@@ -120,7 +98,7 @@ function renderToday() {
 }
 
 function showRejection() {
-  $('reject-emoji').textContent = pick(['😏','🙅‍♂️','⏳','🍮','😌','🤨','🐈','😜']);
+  $('reject-emoji').textContent = pick(['😏','🙅‍♂️','⏳','🍮','😌','🤨','🤍','😜']);
   $('reject-text').textContent = pick(REJECTIONS);
   $('reject-countdown').textContent = remainingText();
   $('reject-modal').classList.remove('hidden');
@@ -197,7 +175,7 @@ function setupTruf() {
   let toastTimer;
   $('truf-btn').addEventListener('click', () => {
     const toast = $('truf-toast');
-    toast.textContent = '🐈 Trüf: ' + pick(TRUF_LINES);
+    toast.textContent = 'Trüf: ' + pick(TRUF_LINES);
     toast.classList.remove('hidden');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.add('hidden'), 4500);
