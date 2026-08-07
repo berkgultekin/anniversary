@@ -17,24 +17,20 @@ const SPECIAL_DAYS = {
   365: '🥹 365. sebep! Bir yıl boyunca her gün buradaydın. Yarın 3. yıldönümümüz…'
 };
 
-// ---------- Açılış saatleri ----------
-// Sebep #1: 10 Ağustos 2026, Stockholm saatiyle 17:00 (CEST = UTC+2) -> 15:00 UTC
-const UNLOCK_FIRST = Date.UTC(2026, 7, 10, 15, 0, 0);
-// Sebep #2 ve sonrası: her sabah Türkiye saatiyle 10:00 (UTC+3) -> 07:00 UTC
-const UNLOCK_DAILY = Date.UTC(2026, 7, 11, 7, 0, 0);
+// ---------- Açılış saati ----------
+// Her sebep, ilk gün dahil, Türkiye saatiyle 10:00'da açılır (TR = UTC+3, yaz saati yok).
+// Mutlak zamana bağlı: telefon hangi saat diliminde olursa olsun aynı anda açılır.
+const UNLOCK_FIRST = Date.UTC(2026, 7, 10, 7, 0, 0);  // 10 Ağustos 2026, 10:00 TR
 
-// Cihazın saat diliminden bağımsız: mutlak zamana göre hangi gündeyiz?
 function currentDayNumber(now) {
   const t = now.getTime();
   if (t < UNLOCK_FIRST) return 0;
-  if (t < UNLOCK_DAILY) return 1;
-  return Math.floor((t - UNLOCK_DAILY) / MS_DAY) + 2;
+  return Math.floor((t - UNLOCK_FIRST) / MS_DAY) + 1;
 }
 
 // Bir sonraki notun açılacağı an
 function nextUnlockTime(dayNo) {
-  if (dayNo < 1) return UNLOCK_FIRST;
-  return UNLOCK_DAILY + Math.max(0, dayNo - 1) * MS_DAY;
+  return UNLOCK_FIRST + Math.max(0, dayNo) * MS_DAY;
 }
 
 // Onizleme: ?ironman=42 -> 42. gunu gosterir. Gecersiz deger yok sayilir.
