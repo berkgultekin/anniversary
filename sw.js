@@ -1,5 +1,5 @@
 /* 365 Sebep — service worker */
-const CACHE = '365sebep-v8';
+const CACHE = '365sebep-v9';
 const CORE = [
   '.',
   'index.html',
@@ -12,8 +12,13 @@ const CORE = [
   'icons/icon-512.png'
 ];
 
+// Kurulumda dosyalari sunucudan taze cek (tarayici HTTP onbellegini atla)
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)));
+  e.waitUntil(
+    caches.open(CACHE).then((c) =>
+      c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))
+    )
+  );
   self.skipWaiting();
 });
 
@@ -25,16 +30,25 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Ağ öncelikli, ağ yoksa önbellek: güncellemeler hemen insin, çevrimdışı da çalışsın
+// Ag oncelikli, ag yoksa onbellek.
+// Kendi dosyalarimizi 'no-cache' ile isteriz: GitHub Pages'in 10 dakikalik
+// tarayici onbellegi yuzunden eski surum gosterilmesin.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+
+  const sameOrigin = new URL(req.url).origin === self.location.origin;
+  const netReq = sameOrigin ? new Request(req, { cache: 'no-cache' }) : req;
+
   e.respondWith(
-    fetch(e.request)
+    fetch(netReq)
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       })
-      .catch(() => caches.match(e.request, { ignoreSearch: true }))
+      .catch(() => caches.match(req, { ignoreSearch: true }))
   );
 });
