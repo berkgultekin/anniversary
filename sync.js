@@ -29,11 +29,11 @@
     mode: 'local'           // 'local' | 'sync'
   };
 
-  // Varsayılan liste
-  if (Object.keys(state.lists).length === 0) {
-    state.lists['market'] = { name: 'Market', icon: '🛒', o: 0 };
-    write(LS.lists, state.lists);
-  }
+  // Varsayılan listeler
+  if (!state.lists['market']) state.lists['market'] = { name: 'Market alışverişi', icon: '🛒', o: 0 };
+  else if (state.lists['market'].name === 'Market') state.lists['market'].name = 'Market alışverişi';
+  if (!state.lists['online']) state.lists['online'] = { name: 'Online alışveriş', icon: '💻', o: 1 };
+  write(LS.lists, state.lists);
 
   let fs = null;            // {db, doc, setDoc, deleteDoc, collection, onSnapshot}
   let aesKey = null;

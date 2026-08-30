@@ -1,5 +1,5 @@
 /* 365 Sebep — service worker */
-const CACHE = '365sebep-v10';
+const CACHE = '365sebep-v11';
 const CORE = [
   '.',
   'index.html',

@@ -664,9 +664,67 @@ textarea:focus, input:focus, select:focus { border-color: var(--rose); }
 }
 .mk-tab:not(.on) .mk-cnt { background: #fdeef0; color: var(--rose-deep); }
 
-.mk-addbar { display: flex; gap: 8px; }
-.mk-addbar #mk-input { flex: 1; }
-.mk-addbar #mk-qty-input { width: 64px; text-align: center; }
+.mk-addbar { display: flex; gap: 7px; }
+.mk-addbar #mk-input { flex: 1; min-width: 0; }
+.mk-addbar #mk-qty-input { width: 56px; text-align: center; padding: 11px 6px; }
+.mk-prio-btn {
+  width: 48px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 12px;
+  background: var(--card);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px; font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mk-prio-1, .mk-prio-2 { color: var(--ink-soft); }
+.mk-prio-3 { color: var(--gold); }
+.mk-prio-4 { color: var(--rose-deep); }
+.mk-prio-5 { color: #c0605f; border-color: #eec5c4; background: #fdf1f0; }
+.mk-seg {
+  display: flex;
+  background: var(--bg-soft);
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  padding: 3px;
+  margin-top: 12px;
+}
+.mk-seg-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 12px; font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.mk-seg-btn.on { background: var(--card); color: var(--rose-deep); box-shadow: 0 2px 8px rgba(212,115,127,0.15); }
+.mk-stars { font-size: 11px; letter-spacing: 1px; margin-left: 4px; }
+.mk-stars-1, .mk-stars-2 { color: #c9bfb9; }
+.mk-stars-4 { color: var(--rose-deep); }
+.mk-stars-5 { color: #c0605f; }
+.mk-cat i { font-style: normal; color: #e4dcd6; }
+.mk-cat-p5 { color: #c0605f; }
+.mk-cat-p4 { color: var(--rose-deep); }
+.mk-hist-head { cursor: pointer; user-select: none; }
+.mk-hist-hint { font-size: 10px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-soft); opacity: 0.8; }
+.mk-hist-row { opacity: 0.85; }
+.mk-readd {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--card);
+  font-size: 16px;
+}
+.mk-hist-del {
+  border: none; background: none;
+  color: #c9bfb9;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px;
+  flex-shrink: 0;
+}
 .mk-addbar #mk-add-btn {
   width: 48px;
   border: none;
