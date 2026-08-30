@@ -234,20 +234,22 @@
 
   // ---------- döngü ayarları (istatistiklere dokununca açılır) ----------
   function openCycleSettings() {
-    const meta = AppSync.getMeta();
-    $id('cy-set-cycle').value = meta.cycleLen || '';
-    $id('cy-set-period').value = meta.periodLen || '';
+    // geçerli değerler yazılı gelir (elle girilmiş ya da hesaplanmış hali)
+    const A = analyze();
+    $id('cy-set-cycle').value = A.cycleLen;
+    $id('cy-set-period').value = A.periodLen;
     $id('cyset-modal').classList.remove('hidden');
   }
 
   function saveCycleSettings() {
-    const clamp = (id, min, max) => {
+    const A = analyze();
+    const clamp = (id, min, max, cur) => {
       const v = parseInt($id(id).value, 10);
-      return isNaN(v) ? null : Math.max(min, Math.min(max, v));
+      return isNaN(v) ? cur : Math.max(min, Math.min(max, v));
     };
     AppSync.saveMeta({
-      cycleLen: clamp('cy-set-cycle', 15, 60),
-      periodLen: clamp('cy-set-period', 1, 10)
+      cycleLen: clamp('cy-set-cycle', 15, 60, A.cycleLen),
+      periodLen: clamp('cy-set-period', 1, 10, A.periodLen)
     });
     $id('cyset-modal').classList.add('hidden');
     render();
@@ -257,7 +259,7 @@
     const t = new Date();
     viewYear = t.getFullYear(); viewMonth = t.getMonth();
 
-    $id('cy-stats').addEventListener('click', openCycleSettings);
+    document.querySelectorAll('.cy-stat-edit').forEach((el) => el.addEventListener('click', openCycleSettings));
     $id('cyset-save').addEventListener('click', saveCycleSettings);
     $id('cyset-close').addEventListener('click', () => $id('cyset-modal').classList.add('hidden'));
 

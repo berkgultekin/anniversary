@@ -92,9 +92,9 @@
         </div>
       </div>
 
-      <div class="cy-stats" id="cy-stats" title="Düzenlemek için dokun">
-        <div class="cy-stat"><span id="cy-stat-cycle">—</span><label>Ort. döngü ✎</label></div>
-        <div class="cy-stat"><span id="cy-stat-period">—</span><label>Ort. regl ✎</label></div>
+      <div class="cy-stats" id="cy-stats">
+        <div class="cy-stat cy-stat-edit" title="Düzenlemek için dokun"><span id="cy-stat-cycle">—</span><label>Ort. döngü ✎</label></div>
+        <div class="cy-stat cy-stat-edit" title="Düzenlemek için dokun"><span id="cy-stat-period">—</span><label>Ort. regl ✎</label></div>
         <div class="cy-stat"><span id="cy-stat-next">—</span><label>Sonraki regl</label></div>
       </div>
 
@@ -207,15 +207,15 @@
       <h3 class="sheet-title">Döngü ayarları</h3>
       <div class="cy-set-row">
         <label for="cy-set-cycle">Ortalama döngü süresi</label>
-        <input id="cy-set-cycle" type="number" inputmode="numeric" min="15" max="60" placeholder="oto">
+        <input id="cy-set-cycle" type="number" inputmode="numeric" min="15" max="60">
         <span>gün</span>
       </div>
       <div class="cy-set-row">
         <label for="cy-set-period">Ortalama regl süresi</label>
-        <input id="cy-set-period" type="number" inputmode="numeric" min="1" max="10" placeholder="oto">
+        <input id="cy-set-period" type="number" inputmode="numeric" min="1" max="10">
         <span>gün</span>
       </div>
-      <p class="cy-set-hint">Boş bırakırsan kayıtlarından otomatik hesaplanır; girersen tahminler bu değerlere göre yapılır.</p>
+      <p class="cy-set-hint">Tahminler bu sürelere göre hesaplanır.</p>
       <div class="modal-actions">
         <button class="btn btn-primary" id="cyset-save">Kaydet</button>
         <button class="btn btn-ghost" id="cyset-close">Vazgeç</button>
