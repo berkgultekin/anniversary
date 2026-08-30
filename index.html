@@ -35,9 +35,12 @@
         <h1 id="app-logo">365 Sebep</h1>
         <p class="header-sub">Seni sevmemin 365 sebebi</p>
       </div>
-      <div class="married-counter">
-        <span id="married-days">0</span>
-        <label>gündür evliyiz 💍</label>
+      <div class="header-right">
+        <div class="married-counter">
+          <span id="married-days">0</span>
+          <label>gündür evliyiz 💍</label>
+        </div>
+        <button id="settings-btn" title="Ayarlar" aria-label="Ayarlar">⚙︎</button>
       </div>
     </header>
 
@@ -67,10 +70,61 @@
       <div id="archive-list" class="archive-list"></div>
     </main>
 
+    <!-- DÖNGÜ 🌸 -->
+    <main id="cycle-view" class="view hidden">
+      <div id="cy-status" class="cy-status">
+        <div id="cy-status-big" class="cy-status-big"></div>
+        <div id="cy-status-sub" class="cy-status-sub"></div>
+      </div>
+
+      <div class="cy-cal-card">
+        <div class="cy-cal-head">
+          <button id="cy-prev" class="cy-nav">‹</button>
+          <span id="cy-month-label"></span>
+          <button id="cy-next" class="cy-nav">›</button>
+        </div>
+        <div id="cy-grid" class="cy-grid"></div>
+        <div class="cy-legend">
+          <span><i class="lg lg-period"></i> Regl</span>
+          <span><i class="lg lg-pred"></i> Tahmin</span>
+          <span><i class="lg lg-fert"></i> Doğurgan</span>
+          <span>✦ Yumurtlama</span>
+        </div>
+      </div>
+
+      <div class="cy-stats">
+        <div class="cy-stat"><span id="cy-stat-cycle">—</span><label>Ort. döngü</label></div>
+        <div class="cy-stat"><span id="cy-stat-period">—</span><label>Ort. regl</label></div>
+        <div class="cy-stat"><span id="cy-stat-next">—</span><label>Sonraki regl</label></div>
+      </div>
+
+      <div class="cy-chart-card">
+        <p class="cy-chart-title">Son döngüler (gün)</p>
+        <div id="cy-bars" class="cy-bars-wrap"></div>
+        <p id="cy-irregular" class="cy-irregular hidden">Son döngülerde 7+ günlük oynama var — düzensizlik doktora danışmayı gerektirebilir. 🌷</p>
+      </div>
+    </main>
+
+    <!-- MARKET 🛒 -->
+    <main id="market-view" class="view hidden">
+      <div id="mk-tabs" class="mk-tabs"></div>
+
+      <div class="mk-addbar">
+        <input id="mk-input" type="text" placeholder="Ne lazım? (ör. süt)" autocomplete="off">
+        <input id="mk-qty-input" type="text" placeholder="adet" autocomplete="off">
+        <button id="mk-add-btn">＋</button>
+      </div>
+      <div id="mk-suggest" class="mk-suggest"></div>
+
+      <div id="mk-items" class="mk-items"></div>
+    </main>
+
     <!-- ALT MENÜ -->
     <nav id="bottom-nav">
       <button class="nav-btn active" data-view="today-view">💌<span>Bugün</span></button>
       <button class="nav-btn" data-view="archive-view">📖<span>Arşiv</span></button>
+      <button class="nav-btn" data-view="cycle-view">🌸<span>Döngü</span></button>
+      <button class="nav-btn" data-view="market-view">🛒<span>Market</span></button>
     </nav>
 
     <!-- Trüf — beyaz kedi -->
@@ -126,9 +180,86 @@
     </div>
   </div>
 
+  <!-- Döngü gün düzenleyici -->
+  <div id="cycle-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 id="cyd-title" class="sheet-title"></h3>
+      <p class="sheet-label">Akıntı</p>
+      <div id="cyd-flow" class="chips"></div>
+      <p class="sheet-label">Belirtiler</p>
+      <div id="cyd-sym" class="chips"></div>
+      <p class="sheet-label">Ruh hali</p>
+      <div id="cyd-mood" class="chips"></div>
+      <p class="sheet-label">Not</p>
+      <textarea id="cyd-note" rows="2" placeholder="İstersen bir not bırak…"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="cyd-save">Kaydet</button>
+        <button class="btn btn-ghost" id="cyd-close">Vazgeç</button>
+      </div>
+      <button class="btn-link-danger hidden" id="cyd-delete">Bu günün kaydını sil</button>
+    </div>
+  </div>
+
+  <!-- Ürün düzenleyici -->
+  <div id="mkitem-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">Ürünü düzenle</h3>
+      <p class="sheet-label">Ürün</p>
+      <input id="mki-name" type="text">
+      <p class="sheet-label">Miktar</p>
+      <input id="mki-qty" type="text" placeholder="ör. 2, 1 kg">
+      <p class="sheet-label">Kategori</p>
+      <select id="mki-cat"></select>
+      <p class="sheet-label">Not</p>
+      <input id="mki-note" type="text" placeholder="ör. laktozsuz olsun">
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="mki-save">Kaydet</button>
+        <button class="btn btn-ghost" id="mki-close">Vazgeç</button>
+      </div>
+      <button class="btn-link-danger" id="mki-delete">Ürünü sil</button>
+    </div>
+  </div>
+
+  <!-- Yeni liste -->
+  <div id="mklist-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">Yeni liste</h3>
+      <p class="sheet-label">Liste adı</p>
+      <input id="mklist-name" type="text" placeholder="ör. Eczane">
+      <p class="sheet-label">Simge</p>
+      <input id="mklist-icon" type="text" placeholder="📝" maxlength="4">
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="mklist-save">Oluştur</button>
+        <button class="btn btn-ghost" id="mklist-close">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ayarlar / eşleşme -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">Ayarlar</h3>
+      <p class="sheet-label">Ben kimim?</p>
+      <div class="chips" id="st-who">
+        <button class="chip" data-w="B">Berk</button>
+        <button class="chip" data-w="D">Damla</button>
+      </div>
+      <p class="sheet-label">Cihaz eşleşmesi</p>
+      <div id="st-pair-info" class="st-box"></div>
+      <div id="st-pair-actions"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="st-close">Kapat</button>
+      </div>
+    </div>
+  </div>
+
   <canvas id="share-canvas" width="1080" height="1350" class="hidden"></canvas>
 
   <script src="notes.enc.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="sync.js"></script>
   <script src="app.js"></script>
+  <script src="cycle.js"></script>
+  <script src="market.js"></script>
 </body>
 </html>
