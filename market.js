@@ -36,7 +36,6 @@
   const $id = (x) => document.getElementById(x);
   let activeList = 'market';
   let addPrio = 3;                                       // ekleme çubuğundaki seçili öncelik
-  let sortMode = localStorage.getItem('s365_mksort') || 'cat';   // 'cat' | 'prio'
   let histOpen = false;
 
   function guessCat(name) {
@@ -58,7 +57,7 @@
     if (meta.hist && !meta.histMigrated) {
       h2.market = h2.market || {};
       for (const k in meta.hist) {
-        if (!h2.market[k]) h2.market[k] = { n: k.charAt(0).toUpperCase() + k.slice(1), c: meta.hist[k], cat: guessCat(k), p: 3, u: 0 };
+        if (!h2.market[k]) h2.market[k] = { n: k.charAt(0).toLocaleUpperCase('tr-TR') + k.slice(1), c: meta.hist[k], cat: guessCat(k), p: 3, u: 0 };
       }
       AppSync.saveMeta({ hist2: h2, histMigrated: true });
     }
@@ -117,11 +116,6 @@
       b.addEventListener('contextmenu', (e) => { e.preventDefault(); askDeleteList(b.dataset.l); });
     });
     $id('mk-add-list').addEventListener('click', () => $id('mklist-modal').classList.remove('hidden'));
-
-    // sıralama düğmeleri
-    document.querySelectorAll('#mk-sort .mk-seg-btn').forEach((b) => {
-      b.classList.toggle('on', b.dataset.sort === sortMode);
-    });
   }
 
   function askDeleteList(id) {
@@ -144,26 +138,9 @@
     const host = $id('mk-items');
     let html = '';
 
-    if (sortMode === 'prio') {
-      // öncelik grupları: 5 → 1
-      for (let p = 5; p >= 1; p--) {
-        const arr = open.filter((i) => prioOf(i) === p);
-        if (!arr.length) continue;
-        arr.sort((a, b) => (a.u || 0) - (b.u || 0));
-        html += '<div class="mk-cat mk-cat-p' + p + '">' + '★'.repeat(p) + '<i>' + '★'.repeat(5 - p) + '</i> ' + PRIO_LABEL[p] + '</div>';
-        html += arr.map((i) => row(i, true)).join('');
-      }
-    } else {
-      const byCat = {};
-      open.forEach((i) => { (byCat[i.c || 'ev'] = byCat[i.c || 'ev'] || []).push(i); });
-      for (const cat of CATS) {
-        const arr = byCat[cat.id];
-        if (!arr) continue;
-        arr.sort((a, b) => prioOf(b) - prioOf(a) || (a.u || 0) - (b.u || 0));
-        html += '<div class="mk-cat">' + cat.icon + ' ' + cat.name + '</div>';
-        html += arr.map((i) => row(i, false)).join('');
-      }
-    }
+    // düz liste: acil olan üstte, sonra eklenme sırası
+    open.sort((a, b) => prioOf(b) - prioOf(a) || (a.u || 0) - (b.u || 0));
+    html += open.map((i) => row(i, false)).join('');
     if (!open.length) html += '<p class="mk-empty">Liste boş — yukarıdan ekleyin. 🛒</p>';
 
     // alınanlar
@@ -254,7 +231,7 @@
     if (!name) return;
     const id = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     const item = {
-      n: name.charAt(0).toUpperCase() + name.slice(1),
+      n: name.charAt(0).toLocaleUpperCase('tr-TR') + name.slice(1),
       q: qty || '', note: '',
       c: cat || guessCat(name),
       p: prio || addPrio,
@@ -346,12 +323,6 @@
       addPrio = addPrio >= 5 ? 1 : addPrio + 1;
       renderPrioBtn();
     });
-
-    document.querySelectorAll('#mk-sort .mk-seg-btn').forEach((b) => b.addEventListener('click', () => {
-      sortMode = b.dataset.sort;
-      localStorage.setItem('s365_mksort', sortMode);
-      render();
-    }));
 
     $id('mki-save').addEventListener('click', saveItemEditor);
     $id('mki-delete').addEventListener('click', () => { AppSync.deleteItem(activeList, editItemId); $id('mkitem-modal').classList.add('hidden'); });

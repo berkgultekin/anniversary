@@ -103,6 +103,21 @@
         <div id="cy-bars" class="cy-bars-wrap"></div>
         <p id="cy-irregular" class="cy-irregular hidden">Son döngülerde 7+ günlük oynama var — düzensizlik doktora danışmayı gerektirebilir. 🌷</p>
       </div>
+
+      <div class="cy-chart-card cy-settings-card">
+        <p class="cy-chart-title">Döngü ayarları</p>
+        <div class="cy-set-row">
+          <label for="cy-set-cycle">Ortalama döngü süresi</label>
+          <input id="cy-set-cycle" type="number" inputmode="numeric" min="15" max="60" placeholder="oto">
+          <span>gün</span>
+        </div>
+        <div class="cy-set-row">
+          <label for="cy-set-period">Ortalama regl süresi</label>
+          <input id="cy-set-period" type="number" inputmode="numeric" min="1" max="10" placeholder="oto">
+          <span>gün</span>
+        </div>
+        <p class="cy-set-hint">Boş bırakırsan kayıtlarından otomatik hesaplanır; girersen tahminler bu değerlere göre yapılır.</p>
+      </div>
     </main>
 
     <!-- MARKET 🛒 -->
@@ -116,11 +131,6 @@
         <button id="mk-add-btn">＋</button>
       </div>
       <div id="mk-suggest" class="mk-suggest"></div>
-
-      <div id="mk-sort" class="mk-seg">
-        <button class="mk-seg-btn on" data-sort="cat">Kategoriye göre</button>
-        <button class="mk-seg-btn" data-sort="prio">Önceliğe göre</button>
-      </div>
 
       <div id="mk-items" class="mk-items"></div>
     </main>

@@ -232,9 +232,33 @@
     renderStats(A);
   }
 
+  // ---------- döngü ayarları (manuel süreler) ----------
+  function loadSettingsInputs() {
+    const meta = AppSync.getMeta();
+    const c = $id('cy-set-cycle'), p = $id('cy-set-period');
+    if (document.activeElement !== c) c.value = meta.cycleLen || '';
+    if (document.activeElement !== p) p.value = meta.periodLen || '';
+  }
+
+  function bindSettingsInput(id, key, min, max) {
+    const el = $id(id);
+    el.addEventListener('change', () => {
+      let v = parseInt(el.value, 10);
+      if (isNaN(v)) v = null;
+      else { v = Math.max(min, Math.min(max, v)); el.value = v; }
+      AppSync.saveMeta({ [key]: v });
+      render();
+    });
+  }
+
   function init() {
     const t = new Date();
     viewYear = t.getFullYear(); viewMonth = t.getMonth();
+
+    loadSettingsInputs();
+    bindSettingsInput('cy-set-cycle', 'cycleLen', 15, 60);
+    bindSettingsInput('cy-set-period', 'periodLen', 1, 10);
+    AppSync.on('cycle', loadSettingsInputs);
 
     $id('cy-prev').addEventListener('click', () => { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } render(); });
     $id('cy-next').addEventListener('click', () => { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } render(); });

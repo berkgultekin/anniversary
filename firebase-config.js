@@ -1,15 +1,9 @@
-/* Firebase yapılandırması.
-   Kurulum tamamlanınca buraya Firebase konsolundan alınan web config yapıştırılır.
-   Boşken uygulama "tek cihaz" modunda çalışır (veriler telefonda kalır),
-   config gelince otomatik senkrona geçer ve yerel veriler buluta taşınır. */
-window.FIREBASE_CONFIG = null;
-/* Örnek:
+/* Firebase yapılandırması — senkron aktif. */
 window.FIREBASE_CONFIG = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyAZ2fyWcj1KSVjmM3pnARtzq1MkmGjx2Ag",
+  authDomain: "anniversary-app-87828.firebaseapp.com",
+  projectId: "anniversary-app-87828",
+  storageBucket: "anniversary-app-87828.firebasestorage.app",
+  messagingSenderId: "598838645686",
+  appId: "1:598838645686:web:e1487427aab771d226a717"
 };
-*/
