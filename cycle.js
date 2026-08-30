@@ -232,33 +232,34 @@
     renderStats(A);
   }
 
-  // ---------- döngü ayarları (manuel süreler) ----------
-  function loadSettingsInputs() {
+  // ---------- döngü ayarları (istatistiklere dokununca açılır) ----------
+  function openCycleSettings() {
     const meta = AppSync.getMeta();
-    const c = $id('cy-set-cycle'), p = $id('cy-set-period');
-    if (document.activeElement !== c) c.value = meta.cycleLen || '';
-    if (document.activeElement !== p) p.value = meta.periodLen || '';
+    $id('cy-set-cycle').value = meta.cycleLen || '';
+    $id('cy-set-period').value = meta.periodLen || '';
+    $id('cyset-modal').classList.remove('hidden');
   }
 
-  function bindSettingsInput(id, key, min, max) {
-    const el = $id(id);
-    el.addEventListener('change', () => {
-      let v = parseInt(el.value, 10);
-      if (isNaN(v)) v = null;
-      else { v = Math.max(min, Math.min(max, v)); el.value = v; }
-      AppSync.saveMeta({ [key]: v });
-      render();
+  function saveCycleSettings() {
+    const clamp = (id, min, max) => {
+      const v = parseInt($id(id).value, 10);
+      return isNaN(v) ? null : Math.max(min, Math.min(max, v));
+    };
+    AppSync.saveMeta({
+      cycleLen: clamp('cy-set-cycle', 15, 60),
+      periodLen: clamp('cy-set-period', 1, 10)
     });
+    $id('cyset-modal').classList.add('hidden');
+    render();
   }
 
   function init() {
     const t = new Date();
     viewYear = t.getFullYear(); viewMonth = t.getMonth();
 
-    loadSettingsInputs();
-    bindSettingsInput('cy-set-cycle', 'cycleLen', 15, 60);
-    bindSettingsInput('cy-set-period', 'periodLen', 1, 10);
-    AppSync.on('cycle', loadSettingsInputs);
+    $id('cy-stats').addEventListener('click', openCycleSettings);
+    $id('cyset-save').addEventListener('click', saveCycleSettings);
+    $id('cyset-close').addEventListener('click', () => $id('cyset-modal').classList.add('hidden'));
 
     $id('cy-prev').addEventListener('click', () => { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } render(); });
     $id('cy-next').addEventListener('click', () => { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } render(); });

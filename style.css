@@ -630,7 +630,7 @@ textarea:focus, input:focus, select:focus { border-color: var(--rose); }
 .cy-bar { width: 100%; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, var(--rose), var(--rose-deep)); min-height: 8px; }
 .cy-bar-wrap label { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
 .cy-empty { color: var(--ink-soft); font-size: 13px; }
-.cy-settings-card { margin-top: 14px; }
+.cy-stats { cursor: pointer; }
 .cy-set-row {
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 10px;

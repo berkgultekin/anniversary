@@ -92,9 +92,9 @@
         </div>
       </div>
 
-      <div class="cy-stats">
-        <div class="cy-stat"><span id="cy-stat-cycle">—</span><label>Ort. döngü</label></div>
-        <div class="cy-stat"><span id="cy-stat-period">—</span><label>Ort. regl</label></div>
+      <div class="cy-stats" id="cy-stats" title="Düzenlemek için dokun">
+        <div class="cy-stat"><span id="cy-stat-cycle">—</span><label>Ort. döngü ✎</label></div>
+        <div class="cy-stat"><span id="cy-stat-period">—</span><label>Ort. regl ✎</label></div>
         <div class="cy-stat"><span id="cy-stat-next">—</span><label>Sonraki regl</label></div>
       </div>
 
@@ -102,21 +102,6 @@
         <p class="cy-chart-title">Son döngüler (gün)</p>
         <div id="cy-bars" class="cy-bars-wrap"></div>
         <p id="cy-irregular" class="cy-irregular hidden">Son döngülerde 7+ günlük oynama var — düzensizlik doktora danışmayı gerektirebilir. 🌷</p>
-      </div>
-
-      <div class="cy-chart-card cy-settings-card">
-        <p class="cy-chart-title">Döngü ayarları</p>
-        <div class="cy-set-row">
-          <label for="cy-set-cycle">Ortalama döngü süresi</label>
-          <input id="cy-set-cycle" type="number" inputmode="numeric" min="15" max="60" placeholder="oto">
-          <span>gün</span>
-        </div>
-        <div class="cy-set-row">
-          <label for="cy-set-period">Ortalama regl süresi</label>
-          <input id="cy-set-period" type="number" inputmode="numeric" min="1" max="10" placeholder="oto">
-          <span>gün</span>
-        </div>
-        <p class="cy-set-hint">Boş bırakırsan kayıtlarından otomatik hesaplanır; girersen tahminler bu değerlere göre yapılır.</p>
       </div>
     </main>
 
@@ -213,6 +198,28 @@
         <button class="btn btn-ghost" id="cyd-close">Vazgeç</button>
       </div>
       <button class="btn-link-danger hidden" id="cyd-delete">Bu günün kaydını sil</button>
+    </div>
+  </div>
+
+  <!-- Döngü ayarları -->
+  <div id="cyset-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">Döngü ayarları</h3>
+      <div class="cy-set-row">
+        <label for="cy-set-cycle">Ortalama döngü süresi</label>
+        <input id="cy-set-cycle" type="number" inputmode="numeric" min="15" max="60" placeholder="oto">
+        <span>gün</span>
+      </div>
+      <div class="cy-set-row">
+        <label for="cy-set-period">Ortalama regl süresi</label>
+        <input id="cy-set-period" type="number" inputmode="numeric" min="1" max="10" placeholder="oto">
+        <span>gün</span>
+      </div>
+      <p class="cy-set-hint">Boş bırakırsan kayıtlarından otomatik hesaplanır; girersen tahminler bu değerlere göre yapılır.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="cyset-save">Kaydet</button>
+        <button class="btn btn-ghost" id="cyset-close">Vazgeç</button>
+      </div>
     </div>
   </div>
 
