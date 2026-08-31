@@ -171,55 +171,31 @@ function setupNav() {
   });
 }
 
-// ---------- Ayarlar / eşleşme ----------
+// ---------- Ayarlar ----------
 function renderSettings() {
   const info = $('st-pair-info');
-  const actions = $('st-pair-actions');
+  $('st-pair-actions').innerHTML = '';
   const who = AppSync.who();
   document.querySelectorAll('#st-who .chip').forEach(c => c.classList.toggle('on', c.dataset.w === who));
 
   if (!AppSync.hasConfig()) {
-    info.innerHTML = 'Senkron altyapısı henüz kurulmadı. Şimdilik veriler bu telefonda saklanıyor; kurulum tamamlanınca otomatik eşitlenecek. ✨';
-    actions.innerHTML = '';
+    info.innerHTML = 'Senkron altyapısı kurulu değil; veriler şimdilik bu telefonda saklanıyor.';
     return;
   }
-  if (AppSync.isPaired()) {
-    const st = AppSync.state;
-    info.innerHTML = 'Eşleşme aktif. ' + (st.online ? 'Bulut bağlantısı: <b>bağlı</b> ✅' : 'Bulut bağlantısı: bekleniyor…') +
-      '<br>Diğer cihazı bağlamak için kodu paylaş:';
-    actions.innerHTML =
-      '<button class="btn btn-primary btn-sm" id="st-copy">Bağlantı kodunu kopyala</button>' +
-      '<button class="btn-link-danger" id="st-unpair">Bu cihazı ayır</button>';
-    $('st-copy').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(AppSync.shareCode()); $('st-copy').textContent = 'Kopyalandı ✓'; } catch (e) {
-        prompt('Kodu kopyala:', AppSync.shareCode());
-      }
-    });
-    $('st-unpair').addEventListener('click', () => { if (confirm('Bu cihaz eşleşmeden ayrılsın mı? (Veriler silinmez)')) { AppSync.unpair(); renderSettings(); } });
-  } else {
-    info.innerHTML = 'Henüz eşleşme yok. İlk cihazda "bağlantı oluştur", ikincisinde kodu yapıştırıp "katıl".';
-    actions.innerHTML =
-      '<button class="btn btn-primary btn-sm" id="st-create">Yeni bağlantı oluştur</button>' +
-      '<div class="st-join"><input id="st-code" type="text" placeholder="Bağlantı kodunu yapıştır"><button class="btn btn-ghost btn-sm" id="st-join">Katıl</button></div>';
-    $('st-create').addEventListener('click', async () => {
-      const who2 = AppSync.who();
-      await AppSync.createPair(who2);
-      renderSettings();
-    });
-    $('st-join').addEventListener('click', async () => {
-      const ok = await AppSync.joinPair($('st-code').value, AppSync.who());
-      if (!ok) { $('st-code').value = ''; $('st-code').placeholder = 'Kod geçersiz, tekrar dene'; }
-      renderSettings();
-    });
+  if (!AppSync.isPaired()) {
+    info.innerHTML = 'Kim olduğunu seç — bağlantı kendiliğinden kurulur. ✨';
+    return;
   }
+  info.innerHTML = 'Ortak veri bağlantısı: ' + (AppSync.state.online ? '<b>bağlı</b> ✅' : 'kuruluyor…') +
+    '<br>İkiniz de aynı verileri görürsünüz. İnternet yokken de çalışır; bağlantı gelince kendiliğinden eşitlenir.';
 }
 
 function setupSettings() {
   $('settings-btn').addEventListener('click', () => { renderSettings(); $('settings-modal').classList.remove('hidden'); });
   $('st-close').addEventListener('click', () => $('settings-modal').classList.add('hidden'));
   document.querySelectorAll('#st-who .chip').forEach(c => c.addEventListener('click', () => {
-    AppSync.setWho(c.dataset.w);
-    document.querySelectorAll('#st-who .chip').forEach(x => x.classList.toggle('on', x === c));
+    AppSync.usePair(c.dataset.w);
+    renderSettings();
   }));
   AppSync.on('status', () => { if (!$('settings-modal').classList.contains('hidden')) renderSettings(); });
 }

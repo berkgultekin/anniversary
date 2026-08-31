@@ -1,9 +1,10 @@
 /* ============ Senkron katmanı ============
-   - Eşleşme: iki cihaz ortak bir "bağlantı kodu" ile aynı veriyi görür.
+   - Sabit eşleşme: uygulamada gömülü ortak alan; ayarlardan sadece
+     "Ben Berk / Ben Damla" seçilir, kod-link gerekmez.
    - Şifreleme: tüm içerik cihazda AES-GCM ile şifrelenir; buluta yalnızca
-     şifreli veri gider (anahtar sadece kodda / cihazlarda durur).
-   - Config yoksa ya da internet yoksa localStorage ile çalışır;
-     bağlantı gelince otomatik senkronize olur.                         */
+     şifreli veri gider.
+   - Veri asla silinmez: bulut ve yerel BİRLEŞTİRİLİR; bağlantı yokken
+     yazılanlar kuyruğa alınır, bağlantı gelince gönderilir.               */
 
 (function () {
   'use strict';
@@ -13,7 +14,8 @@
     cycle: 's365_cycle',     // {'YYYY-MM-DD': {f,s,m,n}}
     lists: 's365_lists',     // {listId: {name, icon, o}}
     items: 's365_items',     // {listId: {itemId: {n,q,note,c,by,done,u}}}
-    meta:  's365_meta'       // {cycleLen, periodLen, hist:{name:count}}
+    meta:  's365_meta',      // {cycleLen, periodLen, mu, hist2:{...}}
+    queue: 's365_queue'      // bekleyen bulut yazmaları [{t,s,o,u}]
   };
 
   const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
@@ -25,9 +27,10 @@
     lists: read(LS.lists, {}),
     items: read(LS.items, {}),
     meta: read(LS.meta, {}),
-    online: false,          // Firestore bağlantısı kuruldu mu
-    mode: 'local'           // 'local' | 'sync'
+    online: false,
+    mode: 'local'
   };
+  let queue = read(LS.queue, []);
 
   // Varsayılan listeler
   if (!state.lists['market']) state.lists['market'] = { name: 'Market alışverişi', icon: '🛒', o: 0 };
@@ -35,8 +38,9 @@
   if (!state.lists['online']) state.lists['online'] = { name: 'Online alışveriş', icon: '💻', o: 1 };
   write(LS.lists, state.lists);
 
-  let fs = null;            // {db, doc, setDoc, deleteDoc, collection, onSnapshot}
+  let fs = null;
   let aesKey = null;
+  let connecting = false;
   const listeners = { cycle: [], market: [], status: [] };
 
   // ---------- yardımcılar ----------
@@ -55,6 +59,17 @@
   function emit(kind) {
     (listeners[kind] || []).forEach((fn) => { try { fn(); } catch (e) {} });
   }
+
+  // ---------- sabit eşleşme kimliği ----------
+  const FIXED = (() => {
+    const OBF = 'LhAsURUCFQ4BbF1iHFMCGREKFUwNGT1KU3tRdTwlRh9UDBIeWX4HBmBZJkBMPyJSQQoFeFRdRVE=';
+    const K = 'trufmatik-2026';
+    const raw = atob(OBF);
+    let plain = '';
+    for (let i = 0; i < raw.length; i++) plain += String.fromCharCode(raw.charCodeAt(i) ^ K.charCodeAt(i % K.length));
+    const p = plain.split('.');
+    return { id: p[0], key: p[1] };
+  })();
 
   // ---------- şifreleme ----------
   async function loadKey() {
@@ -79,9 +94,29 @@
     return JSON.parse(new TextDecoder().decode(pt));
   }
 
+  // ---------- bekleyen yazma kuyruğu ----------
+  function qpush(op) {
+    queue.push(op);
+    if (queue.length > 500) queue = queue.slice(-500);
+    write(LS.queue, queue);
+  }
+
+  async function flushQueue() {
+    if (!fs || !queue.length) return;
+    const ops = queue.splice(0);
+    write(LS.queue, queue);
+    for (const op of ops) {
+      if (op.t === 'put') await fsPut(op.s, op.o, op.u);
+      else await fsDel(op.s);
+    }
+  }
+
   // ---------- Firestore ----------
   async function connect() {
     if (!window.FIREBASE_CONFIG || !state.pair) return;
+    if (fs) { flushQueue(); return; }
+    if (connecting) return;
+    connecting = true;
     try {
       const appM = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
       const fsM = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
@@ -94,22 +129,30 @@
       } catch (e) { db = fsM.getFirestore(app); }
       fs = {
         db,
-        doc: fsM.doc, setDoc: fsM.setDoc, deleteDoc: fsM.deleteDoc,
+        doc: fsM.doc, setDoc: fsM.setDoc, deleteDoc: fsM.deleteDoc, getDoc: fsM.getDoc,
         collection: fsM.collection, onSnapshot: fsM.onSnapshot
       };
       state.mode = 'sync';
       subscribe();
-      await pushAllLocal();   // yerel birikmişleri buluta taşı (ilk kurulumda)
+      await flushQueue();     // bağlantı yokken birikenler
+      await pushAllLocal();   // yereldeki her şeyi bulutla birleştir
       state.online = true;
       emit('status');
     } catch (e) {
-      // internet yok / SDK inmedi: yerel modda devam
+      // internet yok / SDK inmedi: yerel modda devam, sonra tekrar dene
       state.online = false;
       emit('status');
+      setTimeout(connect, 20000);
+    } finally {
+      connecting = false;
     }
   }
 
-  const P = () => 'pairs/' + state.pair.id;
+  // bağlantı fırsatlarında tekrar dene / kuyruğu boşalt
+  window.addEventListener('online', () => connect());
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) connect(); });
+
+  const P = () => 'pairs/' + ((state.pair && state.pair.id) || '_');
 
   function subscribe() {
     // Döngü kayıtları
@@ -138,7 +181,7 @@
       if (changed) { write(LS.lists, state.lists); write(LS.items, state.items); emit('market'); }
     }, () => {});
 
-    // Ürünler (tek koleksiyonda, listId alanıyla)
+    // Ürünler
     fs.onSnapshot(fs.collection(fs.db, P() + '/items'), async (snap) => {
       let changed = false;
       for (const ch of snap.docChanges()) {
@@ -157,31 +200,55 @@
       if (changed) { write(LS.items, state.items); emit('market'); }
     }, () => {});
 
-    // Ayarlar
+    // Ayarlar — zaman damgası yenisi kazanır, eski asla yeniyi ezmez
     fs.onSnapshot(fs.doc(fs.db, P() + '/meta/settings'), async (snap) => {
       if (!snap.exists()) return;
       try {
-        state.meta = await open(snap.data().e);
-        write(LS.meta, state.meta); emit('cycle'); emit('market');
+        const m = await open(snap.data().e);
+        const cloudT = m.mu || snap.data().u || 0;
+        const localT = state.meta.mu || 0;
+        if (cloudT >= localT) {
+          state.meta = m;
+          write(LS.meta, state.meta); emit('cycle'); emit('market');
+        } else {
+          fsPut('meta/settings', state.meta, state.meta.mu);
+        }
       } catch (e) {}
     }, () => {});
   }
 
-  async function fsPut(path, obj) {
-    if (!fs) return;
-    try { await fs.setDoc(fs.doc(fs.db, path), { e: await seal(obj), u: Date.now() }); } catch (e) {}
+  async function fsPut(sub, obj, ts) {
+    if (!fs) { qpush({ t: 'put', s: sub, o: obj, u: ts || Date.now() }); return; }
+    try {
+      await fs.setDoc(fs.doc(fs.db, P() + '/' + sub), { e: await seal(obj), u: ts || Date.now() });
+    } catch (e) {
+      qpush({ t: 'put', s: sub, o: obj, u: ts || Date.now() });
+    }
   }
-  async function fsDel(path) {
-    if (!fs) return;
-    try { await fs.deleteDoc(fs.doc(fs.db, path)); } catch (e) {}
+
+  async function fsDel(sub) {
+    if (!fs) { qpush({ t: 'del', s: sub }); return; }
+    try { await fs.deleteDoc(fs.doc(fs.db, P() + '/' + sub)); } catch (e) { qpush({ t: 'del', s: sub }); }
   }
 
   async function pushAllLocal() {
-    for (const k in state.cycle) await fsPut(P() + '/cycle/' + k, state.cycle[k]);
-    for (const k in state.lists) await fsPut(P() + '/lists/' + k, state.lists[k]);
+    for (const k in state.cycle) await fsPut('cycle/' + k, state.cycle[k]);
+    for (const k in state.lists) await fsPut('lists/' + k, state.lists[k]);
     for (const lid in state.items)
-      for (const iid in state.items[lid]) await fsPut(P() + '/items/' + iid, state.items[lid][iid]);
-    if (Object.keys(state.meta).length) await fsPut(P() + '/meta/settings', state.meta);
+      for (const iid in state.items[lid]) await fsPut('items/' + iid, state.items[lid][iid]);
+
+    // meta: buluttaki daha yeniyse ezme
+    if (Object.keys(state.meta).length) {
+      let cloudNewer = false;
+      try {
+        const snap = await fs.getDoc(fs.doc(fs.db, P() + '/meta/settings'));
+        if (snap.exists()) {
+          const m = await open(snap.data().e);
+          if ((m.mu || snap.data().u || 0) >= (state.meta.mu || 1)) cloudNewer = true;
+        }
+      } catch (e) {}
+      if (!cloudNewer) await fsPut('meta/settings', state.meta, state.meta.mu);
+    }
   }
 
   // ---------- dış API ----------
@@ -189,42 +256,19 @@
     state,
     on: (kind, fn) => { (listeners[kind] = listeners[kind] || []).push(fn); },
 
-    // --- eşleşme ---
+    // --- kimlik / eşleşme ---
     isPaired: () => !!state.pair,
     hasConfig: () => !!window.FIREBASE_CONFIG,
     who: () => (state.pair && state.pair.who) || localStorage.getItem('s365_who') || 'B',
 
-    createPair: async (who) => {
-      const id = b64u.enc(crypto.getRandomValues(new Uint8Array(9)).buffer);
-      const key = b64u.enc(crypto.getRandomValues(new Uint8Array(32)).buffer);
-      state.pair = { id, key, who };
+    // "Ben Berk / Ben Damla" — sabit ortak alana bağlanır
+    usePair: (who) => {
+      try { localStorage.setItem('s365_who', who); } catch (e) {}
+      const changed = !state.pair || state.pair.id !== FIXED.id;
+      state.pair = { id: FIXED.id, key: FIXED.key, who };
       write(LS.pair, state.pair);
-      aesKey = null;
-      await connect();
-      return id + '.' + key;
-    },
-
-    joinPair: async (code, who) => {
-      const m = String(code || '').trim().split('.');
-      if (m.length !== 2 || m[0].length < 8 || m[1].length < 40) return false;
-      state.pair = { id: m[0], key: m[1], who };
-      write(LS.pair, state.pair);
-      aesKey = null;
-      await connect();
-      return true;
-    },
-
-    shareCode: () => (state.pair ? state.pair.id + '.' + state.pair.key : null),
-    setWho: (w) => {
-      try { localStorage.setItem('s365_who', w); } catch (e) {}
-      if (state.pair) { state.pair.who = w; write(LS.pair, state.pair); }
-    },
-
-    unpair: () => {
-      state.pair = null; aesKey = null; fs = null;
-      state.mode = 'local'; state.online = false;
-      write(LS.pair, null);
-      emit('status');
+      if (changed) { aesKey = null; fs = null; }
+      connect();
     },
 
     // --- döngü ---
@@ -233,21 +277,22 @@
       state.cycle[dayKey] = entry;
       write(LS.cycle, state.cycle);
       emit('cycle');
-      fsPut(P0() + '/cycle/' + dayKey, entry);
+      fsPut('cycle/' + dayKey, entry);
     },
     deleteCycleDay: (dayKey) => {
       delete state.cycle[dayKey];
       write(LS.cycle, state.cycle);
       emit('cycle');
-      fsDel(P0() + '/cycle/' + dayKey);
+      fsDel('cycle/' + dayKey);
     },
 
     // --- ayarlar ---
     getMeta: () => state.meta,
     saveMeta: (patch) => {
       Object.assign(state.meta, patch);
+      state.meta.mu = Date.now();
       write(LS.meta, state.meta);
-      fsPut(P0() + '/meta/settings', state.meta);
+      fsPut('meta/settings', state.meta, state.meta.mu);
     },
 
     // --- market ---
@@ -258,7 +303,7 @@
       state.lists[id] = { name, icon, o: Object.keys(state.lists).length };
       write(LS.lists, state.lists);
       emit('market');
-      fsPut(P0() + '/lists/' + id, state.lists[id]);
+      fsPut('lists/' + id, state.lists[id]);
       return id;
     },
     deleteList: (listId) => {
@@ -267,8 +312,8 @@
       delete state.items[listId];
       write(LS.lists, state.lists); write(LS.items, state.items);
       emit('market');
-      fsDel(P0() + '/lists/' + listId);
-      for (const iid in its) fsDel(P0() + '/items/' + iid);
+      fsDel('lists/' + listId);
+      for (const iid in its) fsDel('items/' + iid);
     },
     saveItem: (listId, itemId, item) => {
       item.list = listId;
@@ -276,19 +321,24 @@
       state.items[listId][itemId] = item;
       write(LS.items, state.items);
       emit('market');
-      fsPut(P0() + '/items/' + itemId, item);
+      fsPut('items/' + itemId, item);
     },
     deleteItem: (listId, itemId) => {
       if (state.items[listId]) delete state.items[listId][itemId];
       write(LS.items, state.items);
       emit('market');
-      fsDel(P0() + '/items/' + itemId);
+      fsDel('items/' + itemId);
     }
   };
 
-  // pair yokken fsPut çağrılırsa patlamasın
-  function P0() { return state.pair ? 'pairs/' + state.pair.id : 'pairs/_'; }
-
-  // başlangıç
+  // ---------- başlangıç ----------
+  // Eski kod-link eşleşmesinden sabit alana kendiliğinden geçiş:
+  // kimlik (B/D) ve yereldeki TÜM veri korunur, bulutla birleştirilir.
+  if (state.pair && state.pair.id !== FIXED.id) {
+    state.pair = { id: FIXED.id, key: FIXED.key, who: state.pair.who || localStorage.getItem('s365_who') || 'B' };
+    write(LS.pair, state.pair);
+    queue = [];                    // eski alana ait bekleyenler geçersiz; pushAllLocal hepsini yeniden taşır
+    write(LS.queue, queue);
+  }
   if (state.pair) connect();
 })();
