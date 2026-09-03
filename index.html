@@ -120,12 +120,42 @@
       <div id="mk-items" class="mk-items"></div>
     </main>
 
+    <!-- RUTİNLER ✅ -->
+    <main id="routines-view" class="view hidden">
+      <div class="mk-seg" id="rt-seg">
+        <button class="mk-seg-btn on" data-rt="daily">🔁 Günlük Rutin</button>
+        <button class="mk-seg-btn" data-rt="todo">📌 Yapılacaklar</button>
+      </div>
+
+      <!-- Günlük rutinler -->
+      <div id="rt-daily">
+        <div class="mk-addbar">
+          <input id="rt-input" type="text" placeholder="Yeni rutin (ör. vitamin, spor)" autocomplete="off">
+          <button id="rt-add-btn">＋</button>
+        </div>
+        <p id="rt-progress" class="rt-progress"></p>
+        <div id="rt-list"></div>
+      </div>
+
+      <!-- Yapılacaklar -->
+      <div id="rt-todo" class="hidden">
+        <div id="td-tabs" class="mk-tabs"></div>
+        <div class="mk-addbar">
+          <input id="td-input" type="text" placeholder="Yapılacak iş…" autocomplete="off">
+          <button id="td-prio-btn" class="mk-prio-btn mk-prio-3" title="Öncelik">★3</button>
+          <button id="td-add-btn">＋</button>
+        </div>
+        <div id="td-items"></div>
+      </div>
+    </main>
+
     <!-- ALT MENÜ -->
     <nav id="bottom-nav">
       <button class="nav-btn active" data-view="today-view">💌<span>Bugün</span></button>
       <button class="nav-btn" data-view="archive-view">📖<span>Arşiv</span></button>
       <button class="nav-btn" data-view="cycle-view">🌸<span>Döngü</span></button>
       <button class="nav-btn" data-view="market-view">🛒<span>Market</span></button>
+      <button class="nav-btn" data-view="routines-view">✅<span>Rutin</span></button>
     </nav>
 
     <!-- Trüf — beyaz kedi -->
@@ -262,6 +292,36 @@
     </div>
   </div>
 
+  <!-- Rutin düzenleyici -->
+  <div id="rtedit-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">Rutini düzenle</h3>
+      <p class="sheet-label">Ad</p>
+      <input id="rte-name" type="text">
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="rte-save">Kaydet</button>
+        <button class="btn btn-ghost" id="rte-close">Vazgeç</button>
+      </div>
+      <button class="btn-link-danger" id="rte-delete">Rutini sil</button>
+    </div>
+  </div>
+
+  <!-- Yapılacak iş düzenleyici -->
+  <div id="tdedit-modal" class="modal hidden">
+    <div class="modal-card modal-left">
+      <h3 class="sheet-title">İşi düzenle</h3>
+      <p class="sheet-label">Ad</p>
+      <input id="tde-name" type="text">
+      <p class="sheet-label">Öncelik</p>
+      <div id="tde-prio" class="chips"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="tde-save">Kaydet</button>
+        <button class="btn btn-ghost" id="tde-close">Vazgeç</button>
+      </div>
+      <button class="btn-link-danger" id="tde-delete">Sil</button>
+    </div>
+  </div>
+
   <!-- Ayarlar / eşleşme -->
   <div id="settings-modal" class="modal hidden">
     <div class="modal-card modal-left">
@@ -288,5 +348,6 @@
   <script src="app.js"></script>
   <script src="cycle.js"></script>
   <script src="market.js"></script>
+  <script src="routines.js"></script>
 </body>
 </html>

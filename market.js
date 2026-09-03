@@ -98,8 +98,15 @@
   }
 
   // ---------- listeler ----------
+  function marketLists() {
+    const all = AppSync.getLists();
+    const out = {};
+    for (const id in all) if (all[id].kind !== 'todo') out[id] = all[id];
+    return out;
+  }
+
   function renderTabs() {
-    const lists = AppSync.getLists();
+    const lists = marketLists();
     if (!lists[activeList]) activeList = Object.keys(lists)[0] || 'market';
     const wrap = $id('mk-tabs');
     wrap.innerHTML = Object.keys(lists).sort((a, b) => (lists[a].o || 0) - (lists[b].o || 0)).map((id) => {
@@ -261,7 +268,7 @@
     $id('mki-cat').innerHTML = CATS.map((c) =>
       '<option value="' + c.id + '"' + ((it.c || 'ev') === c.id ? ' selected' : '') + '>' + c.icon + ' ' + c.name + '</option>').join('');
 
-    const lists = AppSync.getLists();
+    const lists = marketLists();
     $id('mki-list').innerHTML = Object.keys(lists).sort((a, b) => (lists[a].o || 0) - (lists[b].o || 0)).map((lid) =>
       '<option value="' + lid + '"' + (lid === activeList ? ' selected' : '') + '>' + lists[lid].icon + ' ' + esc(lists[lid].name) + '</option>').join('');
 

@@ -159,7 +159,7 @@ function openArchiveNote(n) {
 }
 
 // ---------- Navigasyon ----------
-const VIEWS = ['today-view', 'archive-view', 'cycle-view', 'market-view'];
+const VIEWS = ['today-view', 'archive-view', 'cycle-view', 'market-view', 'routines-view'];
 function setupNav() {
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {

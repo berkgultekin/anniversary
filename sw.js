@@ -1,5 +1,5 @@
 /* 365 Sebep — service worker */
-const CACHE = '365sebep-v16';
+const CACHE = '365sebep-v17';
 const CORE = [
   '.',
   'index.html',
@@ -10,6 +10,7 @@ const CORE = [
   'sync.js',
   'cycle.js',
   'market.js',
+  'routines.js',
   'manifest.webmanifest',
   'icons/icon-180.png',
   'icons/icon-192.png',

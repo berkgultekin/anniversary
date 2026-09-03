@@ -15,7 +15,9 @@
     lists: 's365_lists',     // {listId: {name, icon, o}}
     items: 's365_items',     // {listId: {itemId: {n,q,note,c,by,done,u}}}
     meta:  's365_meta',      // {cycleLen, periodLen, mu, hist2:{...}}
-    queue: 's365_queue'      // bekleyen bulut yazmaları [{t,s,o,u}]
+    queue: 's365_queue',     // bekleyen bulut yazmaları [{t,s,o,u}]
+    routines: 's365_routines',   // {rid: {n, by, o, u}}
+    rchecks:  's365_rchecks'     // {'YYYY-MM-DD': {rid: true}}
   };
 
   const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
@@ -27,6 +29,8 @@
     lists: read(LS.lists, {}),
     items: read(LS.items, {}),
     meta: read(LS.meta, {}),
+    routines: read(LS.routines, {}),
+    rchecks: read(LS.rchecks, {}),
     online: false,
     mode: 'local'
   };
@@ -36,12 +40,13 @@
   if (!state.lists['market']) state.lists['market'] = { name: 'Market alışverişi', icon: '🛒', o: 0 };
   else if (state.lists['market'].name === 'Market') state.lists['market'].name = 'Market alışverişi';
   if (!state.lists['online']) state.lists['online'] = { name: 'Online alışveriş', icon: '💻', o: 1 };
+  if (!state.lists['todo']) state.lists['todo'] = { name: 'Yapılacaklar', icon: '✅', o: 90, kind: 'todo' };
   write(LS.lists, state.lists);
 
   let fs = null;
   let aesKey = null;
   let connecting = false;
-  const listeners = { cycle: [], market: [], status: [] };
+  const listeners = { cycle: [], market: [], routine: [], status: [] };
 
   // ---------- yardımcılar ----------
   const b64u = {
@@ -178,7 +183,7 @@
         if (ch.type === 'removed') { delete state.lists[id]; delete state.items[id]; changed = true; continue; }
         try { state.lists[id] = await open(ch.doc.data().e); changed = true; } catch (e) {}
       }
-      if (changed) { write(LS.lists, state.lists); write(LS.items, state.items); emit('market'); }
+      if (changed) { write(LS.lists, state.lists); write(LS.items, state.items); emit('market'); emit('routine'); }
     }, () => {});
 
     // Ürünler
@@ -197,7 +202,34 @@
           state.items[lid][id] = v; changed = true;
         } catch (e) {}
       }
-      if (changed) { write(LS.items, state.items); emit('market'); }
+      if (changed) { write(LS.items, state.items); emit('market'); emit('routine'); }
+    }, () => {});
+
+    // Rutinler
+    fs.onSnapshot(fs.collection(fs.db, P() + '/routines'), async (snap) => {
+      let changed = false;
+      for (const ch of snap.docChanges()) {
+        const id = ch.doc.id;
+        if (ch.type === 'removed') { delete state.routines[id]; changed = true; continue; }
+        try { state.routines[id] = await open(ch.doc.data().e); changed = true; } catch (e) {}
+      }
+      if (changed) { write(LS.routines, state.routines); emit('routine'); }
+    }, () => {});
+
+    // Rutin tikleri (gün başına doküman: 'YYYY-MM-DD_rid')
+    fs.onSnapshot(fs.collection(fs.db, P() + '/rchecks'), (snap) => {
+      let changed = false;
+      for (const ch of snap.docChanges()) {
+        const id = ch.doc.id;
+        const date = id.slice(0, 10), rid = id.slice(11);
+        if (!date || !rid) continue;
+        if (ch.type === 'removed') {
+          if (state.rchecks[date]) { delete state.rchecks[date][rid]; changed = true; }
+        } else {
+          (state.rchecks[date] = state.rchecks[date] || {})[rid] = true; changed = true;
+        }
+      }
+      if (changed) { write(LS.rchecks, state.rchecks); emit('routine'); }
     }, () => {});
 
     // Ayarlar — zaman damgası yenisi kazanır, eski asla yeniyi ezmez
@@ -236,6 +268,9 @@
     for (const k in state.lists) await fsPut('lists/' + k, state.lists[k]);
     for (const lid in state.items)
       for (const iid in state.items[lid]) await fsPut('items/' + iid, state.items[lid][iid]);
+    for (const rid in state.routines) await fsPut('routines/' + rid, state.routines[rid]);
+    for (const d in state.rchecks)
+      for (const rid in state.rchecks[d]) await fsPut('rchecks/' + d + '_' + rid, { v: 1 });
 
     // meta: buluttaki daha yeniyse ezme
     if (Object.keys(state.meta).length) {
@@ -295,12 +330,42 @@
       fsPut('meta/settings', state.meta, state.meta.mu);
     },
 
+    // --- rutinler ---
+    getRoutines: () => state.routines,
+    saveRoutine: (rid, r) => {
+      state.routines[rid] = r;
+      write(LS.routines, state.routines);
+      emit('routine');
+      fsPut('routines/' + rid, r);
+    },
+    deleteRoutine: (rid) => {
+      delete state.routines[rid];
+      for (const d in state.rchecks) {
+        if (state.rchecks[d][rid]) { delete state.rchecks[d][rid]; fsDel('rchecks/' + d + '_' + rid); }
+      }
+      write(LS.routines, state.routines);
+      write(LS.rchecks, state.rchecks);
+      emit('routine');
+      fsDel('routines/' + rid);
+    },
+    getRChecks: (date) => state.rchecks[date] || {},
+    setRCheck: (date, rid, on) => {
+      const day = state.rchecks[date] = state.rchecks[date] || {};
+      if (on) day[rid] = true; else delete day[rid];
+      write(LS.rchecks, state.rchecks);
+      emit('routine');
+      if (on) fsPut('rchecks/' + date + '_' + rid, { v: 1 });
+      else fsDel('rchecks/' + date + '_' + rid);
+    },
+
     // --- market ---
     getLists: () => state.lists,
     getItems: (listId) => state.items[listId] || {},
-    createList: (name, icon) => {
+    createList: (name, icon, kind) => {
       const id = 'l' + Date.now().toString(36);
-      state.lists[id] = { name, icon, o: Object.keys(state.lists).length };
+      const maxO = Math.max(0, ...Object.values(state.lists).map((l) => l.o || 0));
+      state.lists[id] = { name, icon, o: maxO + 1 };
+      if (kind) state.lists[id].kind = kind;
       write(LS.lists, state.lists);
       emit('market');
       fsPut('lists/' + id, state.lists[id]);
